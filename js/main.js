@@ -1,43 +1,33 @@
 'use strict';
 const API = 'https://raw.githubusercontent.com/GeekBrainsTutorial/online-store-api/master/responses';
 
-let getRequest = (url, cb) => {
-    let xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.onreadystatechange = () => {
-        if (xhr.readyState === 4) {
-            if (xhr.status !== 200) {
-                console.log('Error!');
-            } else {
-                cb(xhr.responseText);
+// let getRequest = (url, cb) => {
+//     let xhr = new XMLHttpRequest();
+//     xhr.open('GET', url, true);
+//     xhr.onreadystatechange = () => {
+//         if (xhr.readyState === 4) {
+//             if (xhr.status !== 200) {
+//                 console.log('Error!');
+//             } else {
+//                 cb(xhr.responseText);
+//             }
+//         }
+//     }
+//     xhr.send();
+// }
+
+let getRequest = (url) => {
+    return new Promise((resolve, reject) => {
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.onreadystatechange = () => {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                resolve(xhr.responseText);
             }
         }
-    }
-    xhr.send();
+        xhr.send();
+    });
 }
-
-const products = [{
-        id: 1,
-        title: 'Notebook',
-        price: 20000
-    },
-    {
-        id: 2,
-        title: 'Mouse',
-        price: 1500
-    },
-    {
-        id: 3,
-        title: 'Keyboard',
-        price: 5000
-    },
-    {
-        id: 4,
-        title: 'Gamepad',
-        price: 4500
-    },
-];
-
 
 class ProductItem {
     constructor(product, img = 'https://via.placeholder.com/200x150') {
@@ -66,10 +56,10 @@ class ProductList {
 
         // this._fetchGoods();
         this._getProducts().then(data => {
-            console.log(data);
             this._goods = data;
             this._render();
         });
+
     }
 
     // _fetchGoods() { // метод который будет забирать с сервера (условно) массив товаров
@@ -81,17 +71,22 @@ class ProductList {
     //     });
     // }
 
+    // _getProducts() {
+    //     return fetch(`${API}/catalogData.json`)
+    //         .then(response => response.json())
+    //         .catch(error => {
+    //             console.log(error)
+    //         });
+    // }
+
     _getProducts() {
-        return fetch(`${API}/catalogData.json`)
-            .then(response => response.json())
-            .catch(error => {
-                console.log(error)
-            });
+        return getRequest(`${API}/catalogData.json`)
+            .then(data => JSON.parse(data))
+            .catch(error => console.log(error));
     }
 
     _render() {
         // const block = document.querySelector(this.container); // сохраняем ссылку на блок-контейнер
-
         for (const product of this._goods) { // перебираем массив товаров из this.goods
             const productObject = new ProductItem(product); // для каждого товара создаем объект - экземпляр класса ProductItem
             this._allProducts.push(productObject); // эти объекты складываем в массив this.allProducts
