@@ -1,35 +1,42 @@
 'use strict';
-const products = [{
-        id: 1,
-        title: 'Notebook',
-        price: 20000
-    },
-    {
-        id: 2,
-        title: 'Mouse',
-        price: 1500
-    },
-    {
-        id: 3,
-        title: 'Keyboard',
-        price: 5000
-    },
-    {
-        id: 4,
-        title: 'Gamepad',
-        price: 4500
-    },
-];
+const API = 'https://raw.githubusercontent.com/GeekBrainsTutorial/online-store-api/master/responses';
 
+// let getRequest = (url, cb) => {
+//     let xhr = new XMLHttpRequest();
+//     xhr.open('GET', url, true);
+//     xhr.onreadystatechange = () => {
+//         if (xhr.readyState === 4) {
+//             if (xhr.status !== 200) {
+//                 console.log('Error!');
+//             } else {
+//                 cb(xhr.responseText);
+//             }
+//         }
+//     }
+//     xhr.send();
+// }
+
+let getRequest = (url) => {
+    return new Promise((resolve, reject) => {
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.onreadystatechange = () => {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                resolve(xhr.responseText);
+            }
+        }
+        xhr.send();
+    });
+}
 
 class ProductItem {
     constructor(product, img = 'https://via.placeholder.com/200x150') {
         this.img = img;
-        this.id = product.id;
-        this.title = product.title;
+        this.id = product.id_product;
+        this.title = product.product_name;
         this.price = product.price;
     }
-    render() {
+    getHTMLString() {
         return `<div class="product-item" data-id="${this.id}">
                     <img src="${this.img}" alt="Some img">
                     <div class="desc">
@@ -43,43 +50,41 @@ class ProductItem {
 
 class ProductList {
     constructor(container = '.products') {
-        this.container = container; // селектор класса блока в который будем выводить разметку
-        this.goods = []; // условный ответ от сервера
-        this.allProducts = []; // массив экземпляров класса ProductItem
+        this.container = document.querySelector(container); // селектор класса блока в который будем выводить разметку
+        this._goods = []; // условный ответ от сервера
+        this._allProducts = []; // массив экземпляров класса ProductItem
 
-        this.fetchGoods();
-        this.render();
+        this._getProducts().then(data => {
+            this._goods = data;
+            this._render();
+        });
+
     }
 
-    fetchGoods() { // метод который будет забирать с сервера (условно) массив товаров
-        this.goods = products;
+    // _getProducts() {
+    //     return fetch(`${API}/catalogData.json`)
+    //         .then(response => response.json())
+    //         .catch(error => {
+    //             console.log(error)
+    //         });
+    // }
+
+    _getProducts() {
+        return getRequest(`${API}/catalogData.json`)
+            .then(data => JSON.parse(data))
+            .catch(error => console.log(error));
     }
 
-    render() { // метод создающий разметку в указанном блоке this.container
-        const block = document.querySelector(this.container); // сохраняем ссылку на блок-контейнер
-
-        for (const product of this.goods) { // перебираем массив товаров из this.goods
+    _render() {
+        for (const product of this._goods) { // перебираем массив товаров из this.goods
             const productObject = new ProductItem(product); // для каждого товара создаем объект - экземпляр класса ProductItem
-            this.allProducts.push(productObject); // эти объекты складываем в массив this.allProducts
-            block.insertAdjacentHTML('beforeend', productObject.render()) // и добавляем в блок-контейнер кусок разметки связанный с этим объектом
+            this._allProducts.push(productObject); // эти объекты складываем в массив this.allProducts
+            this.container.insertAdjacentHTML('beforeend', productObject.getHTMLString()) // и добавляем в блок-контейнер кусок разметки связанный с этим объектом
         }
-    }
-
-    getSum() { // Задание №2 к уроку 2. Метод вычисляет суммарную стоимость всех товаров
-        let sum = 0;
-        for (const product of this.goods) {
-            sum += product.price;
-        }
-        return sum;
     }
 }
-// Далее по логике нужно сделать следущее
-const list = new ProductList(); // создать экземпляр класса ProductList
-// list.fetchGoods(); // запросить в него данные с сервера
-// list.render(); // отрисовать разметку
-// Однако запрос данных с сервера и отрисовка разметки будет всегда происходить вместе с созданием экземпляра класса ProductList, поэтому вызовы функций fetchGoods и render мы добавляем сразу в конструктор класса, таким образом они будут вызываться в момент создания экземпляра автоматически!
 
-console.log(list.getSum()); // Выводим в консоль суммарную стоимость всех товаров (Задание 2 к уроку 2)
+const list = new ProductList(); // создать экземпляр класса ProductList
 
 class CartItem { // Задание 1 ко 2 уроку. Заготовки классов корзины и элемента корзины
 
@@ -89,21 +94,51 @@ class CartItem { // Задание 1 ко 2 уроку. Заготовки кл�
 }
 
 class CartList {
+    constructor() {
+        this._goods = [];
+        this._cartList = [];
 
-    addGood() {
-
+        this._getCart().then(data => {
+            this._goods = data.contents;
+            console.log('В данный момент в корзине находятся следущие товары:');
+            console.log(data.contents);
+            console.log(`На сумму ${data.amount} \n\n\n`);
+        });
+        this.addToCart().then(data => {
+            if (data.result === 1) {
+                console.log('Товар успешно добавлен в корзину!');
+            }
+        });
+        this.removeFromCart().then(data => {
+            if (data.result === 1) {
+                console.log('Товар успешно удален из корзины!');
+            }
+        });
     }
 
-    removeGood() {
-
+    addToCart() {
+        return fetch(`${API}/addToBasket.json`)
+            .then(response => response.json())
+            .catch(error => {
+                console.log(error)
+            });
     }
 
-    changeGoods() {
-
+    removeFromCart() {
+        return fetch(`${API}/deleteFromBasket.json`)
+            .then(response => response.json())
+            .catch(error => {
+                console.log(error)
+            });
     }
 
-    render() {
-
+    _getCart() {
+        return fetch(`${API}/getBasket.json`)
+            .then(response => response.json())
+            .catch(error => {
+                console.log(error);
+            });
     }
-
 }
+
+const cart = new CartList();
