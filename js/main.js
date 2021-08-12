@@ -1,109 +1,114 @@
-'use strict';
-const products = [{
-        id: 1,
-        title: 'Notebook',
-        price: 20000
+const API = 'https://raw.githubusercontent.com/GeekBrainsTutorial/online-store-api/master/responses';
+
+const app = new Vue({
+  el: '#app',
+  data: {
+    catalogUrl: '/catalogData.json',
+    cartUrl: '/getBasket.json',
+    removeUrl: '/deleteFromBasket.json',
+    addUrl: '/addToBasket.json',
+    products: [],
+    filtered: [],
+    cart: [],
+    imgCatalog: 'https://via.placeholder.com/200x150',
+    imgCart: 'https://via.placeholder.com/50x100',
+    searchLine: '',
+    isVisibleCart: false,
+  },
+  methods: {
+    getJson(url) {
+      return fetch(url)
+        .then(result => result.json())
+        .catch(error => {
+          console.log(error);
+        })
     },
-    {
-        id: 2,
-        title: 'Mouse',
-        price: 1500
+    addProduct(product) {
+      this.getJson(`${API + this.addUrl}`)
+        .then(data => {
+          if (data.result === 1) {
+            let find = this.cart.find(item => item.id_product === product.id_product);
+            if (find) {
+              find.quantity++;
+            } else {
+              let item = {
+                id_product: product.id_product,
+                price: product.price,
+                product_name: product.product_name,
+                quantity: 1
+              };
+              this.cart.push(item);
+            }
+          } else {
+            alert('Error');
+          }
+        });
     },
-    {
-        id: 3,
-        title: 'Keyboard',
-        price: 5000
+    removeProduct(product) {
+      this.getJson(`${API + this.removeUrl}`)
+        .then(data => {
+          if (data.result === 1) {
+            if (product.quantity > 1) {
+              product.quantity--
+            } else {
+              this.cart.splice(this.cart.indexOf(product), 1);
+            }
+          } else {
+            alert('Error');
+          }
+        });
     },
-    {
-        id: 4,
-        title: 'Gamepad',
-        price: 4500
+    filterGoods() {
+      const regexp = new RegExp(this.searchLine, 'i');
+      this.filtered = this.products.filter(product => regexp.test(product.product_name));
+    }
+  },
+  computed: {
+    areProductsEmpty() {
+      if (this.filtered.length === 0) {
+        return true;
+      } else {
+        return false;
+      }
     },
-];
-
-
-class ProductItem {
-    constructor(product, img = 'https://via.placeholder.com/200x150') {
-        this.img = img;
-        this.id = product.id;
-        this.title = product.title;
-        this.price = product.price;
+    isCartEmpty() {
+      if (this.cart.length === 0) {
+        return true;
+      } else {
+        return false;
+      }
     }
-    render() {
-        return `<div class="product-item" data-id="${this.id}">
-                    <img src="${this.img}" alt="Some img">
-                    <div class="desc">
-                        <h3>${this.title}</h3>
-                        <p>${this.price} \u20bd</p>
-                        <button class="buy-btn">Купить</button>
-                    </div>
-                </div>`;
-    }
-}
+  },
+  beforeCreated() {
 
-class ProductList {
-    constructor(container = '.products') {
-        this.container = container; // селектор класса блока в который будем выводить разметку
-        this.goods = []; // условный ответ от сервера
-        this.allProducts = []; // массив экземпляров класса ProductItem
+  },
+  created() {
+    this.getJson(`${API + this.catalogUrl}`)
+      .then(data => {
+        this.products = data;
+        this.filtered = this.products;
+      });
+    this.getJson(`${API + this.cartUrl}`)
+      .then(data => {
+        this.cart = data.contents;
+      });
+  },
+  beforeMount() {
 
-        this.fetchGoods();
-        this.render();
-    }
+  },
+  mounted() {
 
-    fetchGoods() { // метод который будет забирать с сервера (условно) массив товаров
-        this.goods = products;
-    }
+  },
+  beforeUpdate() {
 
-    render() { // метод создающий разметку в указанном блоке this.container
-        const block = document.querySelector(this.container); // сохраняем ссылку на блок-контейнер
+  },
+  updated() {
 
-        for (const product of this.goods) { // перебираем массив товаров из this.goods
-            const productObject = new ProductItem(product); // для каждого товара создаем объект - экземпляр класса ProductItem
-            this.allProducts.push(productObject); // эти объекты складываем в массив this.allProducts
-            block.insertAdjacentHTML('beforeend', productObject.render()) // и добавляем в блок-контейнер кусок разметки связанный с этим объектом
-        }
-    }
+  },
+  beforeDestroy() {
 
-    getSum() { // Задание №2 к уроку 2. Метод вычисляет суммарную стоимость всех товаров
-        let sum = 0;
-        for (const product of this.goods) {
-            sum += product.price;
-        }
-        return sum;
-    }
-}
-// Далее по логике нужно сделать следущее
-const list = new ProductList(); // создать экземпляр класса ProductList
-// list.fetchGoods(); // запросить в него данные с сервера
-// list.render(); // отрисовать разметку
-// Однако запрос данных с сервера и отрисовка разметки будет всегда происходить вместе с созданием экземпляра класса ProductList, поэтому вызовы функций fetchGoods и render мы добавляем сразу в конструктор класса, таким образом они будут вызываться в момент создания экземпляра автоматически!
+  },
+  destroyed() {
 
-console.log(list.getSum()); // Выводим в консоль суммарную стоимость всех товаров (Задание 2 к уроку 2)
-
-class CartItem { // Задание 1 ко 2 уроку. Заготовки классов корзины и элемента корзины
-
-    render() {
-
-    }
-}
-
-class CartList {
-
-    addGood() {
-
-    }
-
-    removeGood() {
-
-    }
-
-    changeGoods() {
-
-    }
-
-    render() {
-
-    }
-
-}
+  }
+});
