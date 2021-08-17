@@ -3,17 +3,17 @@ const API = 'https://raw.githubusercontent.com/GeekBrainsTutorial/online-store-a
 const app = new Vue({
   el: '#app',
   data: {
+    userSearch: '',
+    showCart: false,
     catalogUrl: '/catalogData.json',
     cartUrl: '/getBasket.json',
     removeUrl: '/deleteFromBasket.json',
     addUrl: '/addToBasket.json',
     products: [],
+    cartItems: [],
     filtered: [],
-    cart: [],
     imgCatalog: 'https://via.placeholder.com/200x150',
-    imgCart: 'https://via.placeholder.com/50x100',
-    searchLine: '',
-    isVisibleCart: false,
+    imgCart: 'https://via.placeholder.com/50x100'
   },
   methods: {
     getJson(url) {
@@ -27,88 +27,64 @@ const app = new Vue({
       this.getJson(`${API + this.addUrl}`)
         .then(data => {
           if (data.result === 1) {
-            let find = this.cart.find(item => item.id_product === product.id_product);
+            let find = this.cartItems.find(el => el.id_product === product.id_product);
             if (find) {
               find.quantity++;
             } else {
-              let item = {
-                id_product: product.id_product,
-                price: product.price,
-                product_name: product.product_name,
+              let prod = Object.assign({
                 quantity: 1
-              };
-              this.cart.push(item);
+              }, product);
+              this.cartItems.push(prod)
             }
           } else {
             alert('Error');
           }
-        });
+        })
     },
-    removeProduct(product) {
+    remove(item) {
       this.getJson(`${API + this.removeUrl}`)
         .then(data => {
           if (data.result === 1) {
-            if (product.quantity > 1) {
-              product.quantity--
+            if (item.quantity > 1) {
+              item.quantity--;
             } else {
-              this.cart.splice(this.cart.indexOf(product), 1);
+              this.cartItems.splice(this.cartItems.indexOf(item), 1)
             }
           } else {
             alert('Error');
           }
-        });
+        })
     },
-    filterGoods() {
-      const regexp = new RegExp(this.searchLine, 'i');
-      this.filtered = this.products.filter(product => regexp.test(product.product_name));
-    }
-  },
-  computed: {
-    areProductsEmpty() {
-      if (this.filtered.length === 0) {
-        return true;
-      } else {
-        return false;
-      }
-    },
-    isCartEmpty() {
-      if (this.cart.length === 0) {
-        return true;
-      } else {
-        return false;
-      }
+    filter() {
+      let regexp = new RegExp(this.userSearch, 'i');
+      this.filtered = this.products.filter(el => regexp.test(el.product_name));
     }
   },
   beforeCreated() {
 
   },
   created() {
-    this.getJson(`${API + this.catalogUrl}`)
-      .then(data => {
-        this.products = data;
-        this.filtered = this.products;
-      });
-    this.getJson(`${API + this.cartUrl}`)
-      .then(data => {
-        this.cart = data.contents;
-      });
-  },
-  beforeMount() {
-
-  },
-  mounted() {
-
-  },
-  beforeUpdate() {
-
-  },
-  updated() {
 
   },
   beforeDestroy() {
 
   },
-  destroyed() {
+  beforeUpdate() {
 
+  },
+  mounted() {
+    this.getJson(`${API + this.cartUrl}`)
+      .then(data => {
+        for (let el of data.contents) {
+          this.cartItems.push(el);
+        }
+      });
+    this.getJson(`${API + this.catalogUrl}`)
+      .then(data => {
+        for (let el of data) {
+          this.products.push(el);
+          this.filtered.push(el);
+        }
+      });
   }
 });
