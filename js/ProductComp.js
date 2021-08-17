@@ -8,8 +8,8 @@ Vue.component('products', {
     }
   },
   methods: {
-    filter() {
-      let regexp = new RegExp(this.userSearch, 'i');
+    filter(searchLine) {
+      let regexp = new RegExp(searchLine, 'i');
       this.filtered = this.products.filter(el => regexp.test(el.product_name));
     }
   },
@@ -23,17 +23,19 @@ Vue.component('products', {
       });
   },
   template: `
-      <div class="products">
-        <product
-          v-for="item of filtered"
-          :key="item.id_product"
-          :img="imgCatalog"
-          :product="item"
-        ></product>
-      </div>
-<!--      <div v-if="!filtered.length" class="empty-products">-->
-<!--        Такого товара не найдено-->
-<!--      </div>-->
+            <div>
+              <div class="products">
+                <product
+                  v-for="item of filtered"
+                  :key="item.id_product"
+                  :img="imgCatalog"
+                  :product="item"
+                ></product>
+              </div>
+              <div v-if="!filtered.length" class="empty-products">
+                Такого товара не найдено
+              </div>
+            </div>
   `
 });
 Vue.component('product', {
