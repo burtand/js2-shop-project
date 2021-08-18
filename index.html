@@ -13,52 +13,23 @@
     <header>
       <div class="logo">Интернет-магазин</div>
       <div class="cart">
-        <form action="#" class="search-form">
-          <input type="text" class="search-field" v-model="searchLine">
-          <button class="btn-search" type="submit" @click.prevent="filterGoods">
-            <i class="fas fa-search"></i>
-          </button>
-        </form>
-        <button class="btn-cart" type="button" @click="isVisibleCart = !isVisibleCart">Корзина</button>
-        <div v-if="isVisibleCart" class="cart-block">
-          <div class="cart-item" v-for="product of cart" :key="product.id_product">
-            <div class="product-bio">
-              <img :src="imgCart" alt="Some image">
-              <div class="product-desc">
-                <p class="product-title">{{product.product_name}}</p>
-                <p class="product-quantity">Количество: {{product.quantity}}</p>
-                <p class="product-single-price">{{product.price}} за ед.</p>
-              </div>
-            </div>
-            <div class="right-block">
-              <p class="product-price">{{product.quantity*product.price}} ₽</p>
-              <button class="del-btn" @click="removeProduct(product)">&times;</button>
-            </div>
-          </div>
-          <div v-if="isCartEmpty" class="empty-cart">Корзина пуста!</div>
-        </div>
+        <search ref="search"></search>
+        <cart ref="cart"></cart>
       </div>
     </header>
+    <error ref="error"></error>
     <main>
-      <div class="products">
-        <div class="product-item" v-for="product of filtered" :key="product.id_product">
-          <img :src="imgCatalog" alt="Some img">
-          <div class="desc">
-            <h3>{{product.product_name}}</h3>
-            <p>{{product.price}}₽</p>
-            <button class="buy-btn" @click="addProduct(product)">Купить</button>
-          </div>
-        </div>
-      </div>
-      <div v-if="areProductsEmpty" class="empty-products">
-        Такого товара не найдено
-      </div>
+      <products ref="products"></products>
     </main>
   </div>
   <script defer src="https://use.fontawesome.com/releases/v5.7.2/js/all.js"
     integrity="sha384-0pzryjIRos8mFBWMzSSZApWtPl/5++eIfzYmTgBBmXYdhvxPc+XcFEk+zJwDgWbP" crossorigin="anonymous">
   </script>
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="js/ErrorComp.js"></script>
+  <script src="js/SearchComp.js"></script>
+  <script src="js/CartComp.js"></script>
+  <script src="js/ProductComp.js"></script>
   <script src="js/main.js"></script>
 </body>
 
