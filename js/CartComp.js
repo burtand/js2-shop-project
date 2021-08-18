@@ -23,8 +23,6 @@ Vue.component('cart', {
               }, product);
               this.cartItems.push(prod)
             }
-          } else {
-            alert('Error');
           }
         })
     },
@@ -37,8 +35,6 @@ Vue.component('cart', {
             } else {
               this.cartItems.splice(this.cartItems.indexOf(item), 1)
             }
-          } else {
-            alert('Error');
           }
         })
     },

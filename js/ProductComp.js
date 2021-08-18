@@ -32,7 +32,7 @@ Vue.component('products', {
                   :product="item"
                 ></product>
               </div>
-              <div v-if="!filtered.length" class="empty-products">
+              <div v-if="!$root.errorFlag&&!filtered.length" class="empty-products">
                 Такого товара не найдено
               </div>
             </div>
